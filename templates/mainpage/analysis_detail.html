@@ -1,0 +1,492 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    关联分析
+{% endblock %}
+
+{% load staticfiles %}
+
+{% block headmessage %}
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title" style="font-family: 微软雅黑,serif;">本站工作类型列表</h3>
+        </div>
+        <div class="panel-body">
+            <p style="font-family: 微软雅黑,serif;">
+            采用数据挖掘技术的关联规则分析分析销售数据，通过分析客户销售数据的内在关系，关注重点客户、维系普通客户、发展新型客户，利用数据挖掘技术，深入挖掘潜在客户资源。根据企业的具体需求，细分企业市场和客户类型，根据不同层次客户，通过采用数据挖掘技术中的Apriori算法、FP-growth算法、多层关联规则等理论技术，挖掘形成有用信息，并对各种算法给出对比分析，为企业经营者给出决策和建议。
+            </p>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+
+
+{% block content %}
+
+
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+
+<span style="color: black ">
+            <font size="3" face="arial"> min_support:{{min_support}}  min_conf:{{min_conf}}</font>
+        </span>
+    </div>
+
+    <div class="panel-body">
+
+        <ul id="myTab" class="nav nav-tabs">
+            <li class="active">
+                <a href="#view" data-toggle="tab">数据总览</a>
+            </li>
+            <li>
+                <a href="#apriori" data-toggle="tab">apriori算法</a>
+            </li>
+            <li>
+                <a href="#apriori_compress" data-toggle="tab">apriori_compress算法</a>
+            </li>
+             <li>
+                <a href="#apriori_hash" data-toggle="tab">apriori_hash算法</a>
+            </li>
+            <li>
+                <a href="#apriori_plus" data-toggle="tab">apriori_plus算法</a>
+            </li>
+            <li>
+                <a href="#fp_growth" data-toggle="tab">fp-growth算法</a>
+            </li>
+             <li>
+                <a href="#fp_growth_plus" data-toggle="tab">fp-growth-plus算法</a>
+            </li>
+            <li>
+                <a href="#algorithm_efficient" data-toggle="tab">算法效率对比</a>
+            </li>
+        </ul>
+
+        <div id="myTabContent" class="tab-content">
+            <div class="tab-pane fade in active" id="view">
+               <!--头:实现垂直滚动条 -->
+            <!--<div class="panel-body" style="height: 400px; overflow-y:scroll">
+                    <div style="border: 1px  #000000; width: 90%; margin: 0 auto;">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <td>序号</td>
+                                    <td>商品名称</td>
+                                    <td>销量</td>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for file_commodity in file_commodities %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ file_commodity.name }}</td>
+                                        <td>{{ file_commodity.num }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>  -->
+
+                <!--尾:实现垂直滚动条 -->  
+                 
+                <!--头:实现分页标签 -->
+                <div style="border: 1px  #000000; width: 90%; margin: 0 auto;">
+                    {% load pagination_tags %}
+                    {% autopaginate file_commodities 20%}
+
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <td>序号</td>
+                                <td>商品名称</td>
+                                <td>销量</td>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for file_commodity in file_commodities %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ file_commodity.name }}</td>
+                                    <td>{{ file_commodity.num }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% paginate %}
+                    <!--尾:实现分页标签 -->
+                </div>
+
+                <!--<div id="main2" style="width: 1080px;height:640px;"></div>-->
+                
+                <script type="text/javascript">
+                    // 基于准备好的dom，初始化echarts实例
+                    var myChart = echarts.init(document.getElementById('main2'));
+                    var option = {
+                            xAxis: {
+                                type: 'category',
+                                data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: [{
+                                data: [120, 200, 150, 80, 70, 110, 130],
+                                type: 'bar'
+                            }]
+                        };
+                     // 使用刚指定的配置项和数据显示图表。
+                    myChart.setOption(option);
+                </script>
+            </div>
+
+            <div class="tab-pane fade" id="apriori">
+                <!--头:实现垂直滚动条 -->
+                <div class="panel-body" style="height: 400px; overflow-y:scroll">
+                    <div style="border: 1px  #000000; width: 90%; margin: 0 auto;">
+                        <table class="table table-hover">
+
+                            <thead>
+                                <tr>
+                                    <td>序号</td>
+                                    <td>规则前件</td>
+                                    <td>规则后件</td>
+                                    <td>置信度</td>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                
+                                {% for rule_list in apriori_rulelists %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ rule_list.antecedent }}</td>
+                                        <td>{{ rule_list.consequent }}</td>
+                                        <td>{{ rule_list.conf }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!--尾:实现垂直滚动条 -->
+            </div>
+
+            <div class="tab-pane fade" id="apriori_compress">
+                <!--头:实现垂直滚动条 -->
+                <div class="panel-body" style="height: 400px; overflow-y:scroll">
+                    <div style="border: 1px  #000000; width: 90%; margin: 0 auto;">
+                        <table class="table table-hover">
+
+                            <thead>
+                                <tr>
+                                    <td>序号</td>
+                                    <td>规则前件</td>
+                                    <td>规则后件</td>
+                                    <td>置信度</td>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                
+                                {% for rule_list in apriori_compress_rulelists %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ rule_list.antecedent }}</td>
+                                        <td>{{ rule_list.consequent }}</td>
+                                        <td>{{ rule_list.conf }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!--尾:实现垂直滚动条 -->
+            </div>
+            <div class="tab-pane fade" id="apriori_hash">
+                <!--头:实现垂直滚动条 -->
+                <div class="panel-body" style="height: 400px; overflow-y:scroll">
+                    <div style="border: 1px  #000000; width: 90%; margin: 0 auto;">
+                        <table class="table table-hover">
+
+                            <thead>
+                                <tr>
+                                    <td>序号</td>
+                                    <td>规则前件</td>
+                                    <td>规则后件</td>
+                                    <td>置信度</td>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                
+                                {% for rule_list in apriori_hash_rulelists %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ rule_list.antecedent }}</td>
+                                        <td>{{ rule_list.consequent }}</td>
+                                        <td>{{ rule_list.conf }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!--尾:实现垂直滚动条 -->
+            </div>
+
+            <div class="tab-pane fade" id="apriori_plus">
+                <!--头:实现垂直滚动条 -->
+                <div class="panel-body" style="height: 400px; overflow-y:scroll">
+                    <div style="border: 1px  #000000; width: 90%; margin: 0 auto;">
+                        <table class="table table-hover">
+
+                            <thead>
+                                <tr>
+                                    <td>序号</td>
+                                    <td>规则前件</td>
+                                    <td>规则后件</td>
+                                    <td>置信度</td>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                
+                                {% for rule_list in apriori_plus_rulelists %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ rule_list.antecedent }}</td>
+                                        <td>{{ rule_list.consequent }}</td>
+                                        <td>{{ rule_list.conf }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!--尾:实现垂直滚动条 -->
+            </div>
+            <div class="tab-pane fade " id="fp_growth">
+                <!--头:实现垂直滚动条 -->
+                <div class="panel-body" style="height: 400px; overflow-y:scroll">
+                    <div style="border: 1px  #000000; width: 90%; margin: 0 auto;">
+                       <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <td>序号</td>
+                                    <td>规则前件</td>
+                                    <td>规则后件</td>
+                                    <td>置信度</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rule_list in fp_rulelists %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ rule_list.antecedent }}</td>
+                                    <td>{{ rule_list.consequent }}</td>
+                                    <td>{{ rule_list.conf }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!--尾:实现垂直滚动条 -->
+            </div>
+            <div class="tab-pane fade " id="fp_growth_plus">
+                <!--头:实现垂直滚动条 -->
+                <div class="panel-body" style="height: 400px; overflow-y:scroll">
+                    <div style="border: 1px  #000000; width: 90%; margin: 0 auto;">
+                       <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <td>序号</td>
+                                    <td>规则前件</td>
+                                    <td>规则后件</td>
+                                    <td>置信度</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rule_list in fp_growth_plus_rulelists %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ rule_list.antecedent }}</td>
+                                    <td>{{ rule_list.consequent }}</td>
+                                    <td>{{ rule_list.conf }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!--尾:实现垂直滚动条 -->
+            </div>
+            
+
+
+            <div class="tab-pane fade " id="algorithm_efficient">
+                <div id="main1" style="width: 1080px;height:640px;"></div>
+                
+                <!--头:实现垂直滚动条 -->
+                <div class="panel-body" style="height: 400px; overflow-y:scroll">
+                    <div style="border: 1px  #000000; width: 90%; margin: 0 auto;">
+                       <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <td>序号</td>
+                                    
+                                    <td>算法名称</td>
+                                    <td>支持度</td>
+                                    <td>置信度</td>
+                                    <td>算法时间</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in algorithm_time_lists %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    
+                                    <td>{{ item.algorithm }}</td>
+                                    <td>{{ item.min_support }}</td>
+                                    <td>{{ item.min_conf }}</td>
+                                    <td>{{ item.time }}秒</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!--尾:实现垂直滚动条 -->
+
+                <script type="text/javascript">
+                // 基于准备好的dom，初始化echarts实例
+                var myChart = echarts.init(document.getElementById('main1'));
+                data1=[
+                        {% for item in algorithm_time_lists %}
+                        '{{ item.algorithm }}'{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    ];
+
+                data2=[
+                        {% for item in algorithm_time_lists %}
+                        {{ item.time|floatformat }}  
+                        {% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    ];
+
+                option = {
+                    backgroundColor: "white",
+                    grid: {
+                        left: '12%',
+                        top: '5%',
+                        bottom: '12%',
+                        right: '8%'
+                    },
+                    xAxis: {
+                        data: data1,
+                       axisTick: {
+                            show: false
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: 'black',
+                                width: 1 //这里是为了突出显示加上的
+                            }
+                        },
+                        axisLabel: {
+                            textStyle: {
+                                color: '#000',
+                                fontSize: 12
+                            }
+                        }
+                    },
+                    yAxis: [{
+                            splitNumber: 2,
+                            axisTick: {
+                                show: false
+                            },
+                            axisLine: {
+                                lineStyle: {
+                                    color: 'black',
+                                    width: 1 //这里是为了突出显示加上的
+                                }
+                            },
+                            axisLabel: {
+                                textStyle: {
+                                    color: '#999'
+                                }
+                            },
+                            splitArea: {
+                                areaStyle: {
+                                    color: 'rgba(255,255,255,.5)'
+                                }
+                            },
+                            splitLine: {
+                                show: true,
+                                lineStyle: {
+                                    color: 'rgba(255, 129, 109, 0.1)',
+                                    width: 0.5,
+                                    type: 'dashed'
+                                }
+                            }
+                        }
+                    ],
+                    series: [{
+                        name: 'hill',
+                        type: 'pictorialBar',
+                        barCategoryGap: '0%',
+                        symbol: 'path://M0,10 L10,10 C5.5,10 5.5,5 5,0 C4.5,5 4.5,10 0,10 z',
+                        label: {
+                            show: true,
+                            position: 'top',
+                            distance: 15,
+                            color: '#DB5E6A',
+                            fontWeight: 'bolder',
+                            fontSize: 20,
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: {
+                                    type: 'linear',
+                                    x: 0,
+                                    y: 0,
+                                    x2: 0,
+                                    y2: 1,
+                                    colorStops: [{
+                                            offset: 0,
+                                            color: 'rgba(232, 94, 106, .8)' //  0%  处的颜色
+                                        },
+                                        {
+                                            offset: 1,
+                                            color: 'rgba(232, 94, 106, .1)' //  100%  处的颜色
+                                        }
+                                    ],
+                                    global: false //  缺省为  false
+                                }
+                            },
+                            emphasis: {
+                                opacity: 1
+                            }
+                        },
+                        data: data2,
+                        z: 10
+                    }]
+                };
+
+                // 使用刚指定的配置项和数据显示图表。
+                    myChart.setOption(option);
+                </script>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+

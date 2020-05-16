@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    关联分析
+{% endblock %}
+
+{% load staticfiles %}
+
+{% block headmessage %}
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title" style="font-family: 微软雅黑,serif;">本站工作类型列表</h3>
+        </div>
+        <div class="panel-body">
+            <p style="font-family: 微软雅黑,serif;">
+            采用数据挖掘技术的关联规则分析分析销售数据，通过分析客户销售数据的内在关系，关注重点客户、维系普通客户、发展新型客户，利用数据挖掘技术，深入挖掘潜在客户资源。根据企业的具体需求，细分企业市场和客户类型，根据不同层次客户，通过采用数据挖掘技术中的Apriori算法、FP-growth算法、多层关联规则等理论技术，挖掘形成有用信息，并对各种算法给出对比分析，为企业经营者给出决策和建议。
+
+            
+            </p>
+        </div>
+    </div>
+{% endblock %}
+
+
+
+{% block javascript %}
+    <script src="{% static 'js/jquery-3.1.1.min.js' %}"></script>
+    {# JQUERY FILE UPLOAD SCRIPTS #}
+    <script src="{% static 'js/jquery-file-upload/vendor/jquery.ui.widget.js' %}"></script>
+    <script src="{% static 'js/jquery-file-upload/jquery.iframe-transport.js' %}"></script>
+    <script src="{% static 'js/jquery-file-upload/jquery.fileupload.js' %}"></script>
+
+    {# PHOTOS PAGE SCRIPTS #}
+    <script src="{% static 'js/basic-upload.js' %}"></script>
+{% endblock %}
+
+
+{% block content %}
+
+ <form method="post" action="{% url 'clear_database' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path }}">
+    <button type="submit" class="btn btn-danger pull-right">
+      <span class="glyphicon glyphicon-trash"></span> Clear Database
+    </button>
+  </form>
+
+
+<div style="margin-bottom: 20px;">
+
+    <button type="button" class="btn btn-primary js-upload-photos">
+      <span class="glyphicon glyphicon-cloud-upload"></span> Upload files
+    </button>
+
+    <input id="fileupload" type="file" name="file" multiple
+           style="display: none;"
+           data-url="{% url 'analysis' %}"
+           data-form-data='{"csrfmiddlewaretoken": "{{ csrf_token }}"}'>
+</div>
+
+
+
+
+<table id="gallery" class="table table-bordered">
+    <thead>
+      <tr>
+        <th>序号</th>
+        <th>文件</th>
+        <th>参数设置</th>
+        <th>关联分析</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for file in files %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ file.title }}</td>
+
+          <td>
+            <form id="form1" method="POST" role="form" class="form-horizontal" action="/analysis_detail/{{ file.file.name }}">
+              {% csrf_token %}
+              <div class="form-group">
+                <label for="min_support" class="col-md-2 control-label">支持度:</label>
+                <div class="col-md-5">
+                  <input type="number" class="form-control" id="min_support" required name="min_support" autofocus value="25">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="min_conf" class="col-md-2 control-label">置信度:</label>
+                <div class="col-md-5">
+                  <input type="number" class="form-control" required name="min_conf" id="min_conf" value="0.7">
+                </div>
+              </div>
+            </form>
+
+            </td>
+            <td>
+              <a onclick="document.getElementById('form1').submit();">
+            <button  type="button" class="btn btn-primary">进行关联分析</button>
+          </a>
+            </td>
+            
+         
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock %}
+

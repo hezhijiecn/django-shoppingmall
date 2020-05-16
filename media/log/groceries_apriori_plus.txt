@@ -1,0 +1,4 @@
+index  confidence   rules
+ 1     0.886        ['root vegetables', 'whole milk', 'tropical fruit', 'citrus fruit']=>['other vegetables']
+ 2     0.824        ['other vegetables', 'curd', 'domestic eggs']=>['whole milk']
+ 3     0.806        ['curd', 'hamburger meat']=>['whole milk']
